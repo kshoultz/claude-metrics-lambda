@@ -4,11 +4,9 @@ TypeScript Lambda that fetches your Anthropic account metrics via the Admin API 
 
 ## Quick Start
 
-### 1. Clone and install
+### 1. Install
 
 ```bash
-git clone https://github.com/YOUR_USER/claude-metrics.git
-cd claude-metrics
 npm install
 ```
 
@@ -90,17 +88,56 @@ Plus: full usage breakdown (input/output/cache), Claude Code per-user stats, acc
 ## Tests
 
 ```bash
+# TypeScript
 npm test
+
+# Python
+cd python && source .venv/bin/activate && python -m pytest -v
 ```
 
 ## Project Structure
 
+This project includes two functionally identical Lambda implementations — TypeScript and Python — that produce the same JSON output.
+
 ```
-src/
+src/                          # TypeScript Lambda
 ├── index.ts              # Lambda handler
 ├── anthropic-admin.ts    # Typed Admin API client (native fetch, zero deps)
-├── aggregator.ts         # Data shaping + math (token sums, cost projection, burn rate)
+├── aggregator.ts         # Data shaping + math
 └── types.ts              # All TypeScript interfaces
+
+python/                       # Python Lambda
+├── src/
+│   ├── handler.py        # Lambda handler
+│   ├── anthropic_admin.py # Admin API client (urllib.request, zero deps)
+│   ├── aggregator.py     # Data shaping + math
+│   └── types.py          # TypedDict definitions
+├── tests/
+│   └── test_aggregator.py
+├── scripts/
+│   ├── invoke_local.py
+│   └── deploy-local.sh
+├── Dockerfile
+└── pyproject.toml
+```
+
+### Python Quick Start
+
+```bash
+cd python
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+python -m pytest -v
+python scripts/invoke_local.py
+```
+
+### Python LocalStack Deploy
+
+```bash
+docker compose up -d
+./python/scripts/deploy-local.sh
+awslocal lambda invoke --function-name claude-metrics-python --region us-east-1 /dev/stdout
 ```
 
 ## License

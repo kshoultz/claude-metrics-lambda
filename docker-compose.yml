@@ -18,3 +18,12 @@ services:
       localstack:
         condition: service_started
     entrypoint: ["sh", "-c", "echo 'Lambda image built. Run ./scripts/deploy-local.sh to deploy.'"]
+
+  deploy-python:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    depends_on:
+      localstack:
+        condition: service_started
+    entrypoint: ["sh", "-c", "echo 'Python Lambda image built. Run ./python/scripts/deploy-local.sh to deploy.'"]

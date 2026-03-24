@@ -1,0 +1,21 @@
+[project]
+name = "claude-metrics-lambda-python"
+version = "0.1.0"
+description = "Python Lambda for Anthropic account usage metrics via the Admin API"
+requires-python = ">=3.11"
+license = "MIT"
+# Zero runtime dependencies
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "mypy>=1.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

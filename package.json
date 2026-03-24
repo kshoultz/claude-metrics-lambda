@@ -10,8 +10,7 @@
     "deploy:local": "./scripts/deploy-local.sh",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
