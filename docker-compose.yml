@@ -1,0 +1,20 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=lambda,iam,logs
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=0
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack-data:/var/lib/localstack"
+
+  deploy:
+    build: .
+    depends_on:
+      localstack:
+        condition: service_started
+    entrypoint: ["sh", "-c", "echo 'Lambda image built. Run ./scripts/deploy-local.sh to deploy.'"]

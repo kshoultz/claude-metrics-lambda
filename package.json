@@ -1,0 +1,29 @@
+{
+  "name": "claude-metrics-lambda",
+  "version": "0.1.0",
+  "description": "TypeScript Lambda for Anthropic account usage metrics via the Admin API",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.mjs --format=esm --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "invoke": "tsx scripts/invoke-local.ts",
+    "deploy:local": "./scripts/deploy-local.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.11.0",
+    "dotenv": "^16.4.0",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}
