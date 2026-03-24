@@ -40,7 +40,7 @@ docker compose up -d
 ./python/scripts/deploy-local.sh
 
 # Invoke
-awslocal lambda invoke --function-name claude-metrics-python --region us-east-1 /dev/stdout
+aws --endpoint-url http://localhost:4566 lambda invoke --function-name claude-metrics-python --region us-east-1 /dev/stdout
 ```
 
 ## Project Structure

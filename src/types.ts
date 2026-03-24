@@ -100,7 +100,7 @@ export interface RawUsageReport {
 }
 
 export interface RawUsageBucket {
-  bucket_start_time: string;
+  starting_at: string;
   results: RawUsageResult[];
 }
 
@@ -125,7 +125,7 @@ export interface RawCostReport {
 }
 
 export interface RawCostBucket {
-  bucket_start_time: string;
+  starting_at: string;
   results: RawCostResult[];
 }
 

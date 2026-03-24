@@ -93,7 +93,7 @@ export class AnthropicAdminClient {
         ending_at: opts.ending_at,
         bucket_width: opts.bucket_width ?? "1d",
         limit: opts.limit ?? 31,
-        ...(opts.group_by && { group_by: opts.group_by }),
+        ...(opts.group_by && { "group_by[]": opts.group_by }),
         ...(opts.model && { model: opts.model }),
         ...(opts.page && { page: opts.page }),
       }
@@ -124,7 +124,7 @@ export class AnthropicAdminClient {
       ending_at: opts.ending_at,
       bucket_width: opts.bucket_width ?? "1d",
       limit: opts.limit ?? 31,
-      ...(opts.group_by && { group_by: opts.group_by }),
+      ...(opts.group_by && { "group_by[]": opts.group_by }),
       ...(opts.page && { page: opts.page }),
     });
   }

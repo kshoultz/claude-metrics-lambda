@@ -27,7 +27,7 @@ describe("sumTokens", () => {
   it("sums all token types across buckets", () => {
     const buckets: RawUsageBucket[] = [
       {
-        bucket_start_time: "2026-03-01T00:00:00Z",
+        starting_at: "2026-03-01T00:00:00Z",
         results: [
           {
             uncached_input_tokens: 1000,
@@ -41,7 +41,7 @@ describe("sumTokens", () => {
         ],
       },
       {
-        bucket_start_time: "2026-03-02T00:00:00Z",
+        starting_at: "2026-03-02T00:00:00Z",
         results: [
           {
             uncached_input_tokens: 2000,
@@ -62,7 +62,7 @@ describe("sumTokens", () => {
   it("handles missing cache_creation fields", () => {
     const buckets: RawUsageBucket[] = [
       {
-        bucket_start_time: "2026-03-01T00:00:00Z",
+        starting_at: "2026-03-01T00:00:00Z",
         results: [
           {
             uncached_input_tokens: 100,
@@ -80,7 +80,7 @@ describe("sumTokensByType", () => {
   it("breaks down tokens by type", () => {
     const buckets: RawUsageBucket[] = [
       {
-        bucket_start_time: "2026-03-01T00:00:00Z",
+        starting_at: "2026-03-01T00:00:00Z",
         results: [
           {
             uncached_input_tokens: 1000,
@@ -111,11 +111,11 @@ describe("sumCostCents", () => {
   it("sums cost amounts in cents", () => {
     const buckets: RawCostBucket[] = [
       {
-        bucket_start_time: "2026-03-01T00:00:00Z",
+        starting_at: "2026-03-01T00:00:00Z",
         results: [{ amount: "150" }, { amount: "250" }],
       },
       {
-        bucket_start_time: "2026-03-02T00:00:00Z",
+        starting_at: "2026-03-02T00:00:00Z",
         results: [{ amount: "1000" }],
       },
     ];
@@ -194,13 +194,13 @@ describe("dailyTokenBreakdown", () => {
   it("produces date/token pairs from buckets", () => {
     const buckets: RawUsageBucket[] = [
       {
-        bucket_start_time: "2026-03-01T00:00:00Z",
+        starting_at: "2026-03-01T00:00:00Z",
         results: [
           { uncached_input_tokens: 100, cache_read_input_tokens: 0, output_tokens: 50 },
         ],
       },
       {
-        bucket_start_time: "2026-03-02T00:00:00Z",
+        starting_at: "2026-03-02T00:00:00Z",
         results: [
           { uncached_input_tokens: 200, cache_read_input_tokens: 0, output_tokens: 100 },
         ],
@@ -218,8 +218,8 @@ describe("dailyTokenBreakdown", () => {
 describe("dailyCostBreakdown", () => {
   it("produces date/cost pairs from buckets", () => {
     const buckets: RawCostBucket[] = [
-      { bucket_start_time: "2026-03-01T00:00:00Z", results: [{ amount: "500" }] },
-      { bucket_start_time: "2026-03-02T00:00:00Z", results: [{ amount: "750" }] },
+      { starting_at: "2026-03-01T00:00:00Z", results: [{ amount: "500" }] },
+      { starting_at: "2026-03-02T00:00:00Z", results: [{ amount: "750" }] },
     ];
 
     const result = dailyCostBreakdown(buckets);
@@ -238,7 +238,7 @@ describe("groupUsageByModel", () => {
   it("groups and sums tokens by model, sorted descending", () => {
     const buckets: RawUsageBucket[] = [
       {
-        bucket_start_time: "2026-03-01T00:00:00Z",
+        starting_at: "2026-03-01T00:00:00Z",
         results: [
           { uncached_input_tokens: 1000, cache_read_input_tokens: 0, output_tokens: 500, model: "claude-opus-4-20250514" },
           { uncached_input_tokens: 5000, cache_read_input_tokens: 0, output_tokens: 2000, model: "claude-sonnet-4-20250514" },
@@ -320,7 +320,7 @@ describe("aggregate", () => {
       usageReport: {
         data: [
           {
-            bucket_start_time: "2026-03-01T00:00:00Z",
+            starting_at: "2026-03-01T00:00:00Z",
             results: [
               { uncached_input_tokens: 10000, cache_read_input_tokens: 500, output_tokens: 5000 },
             ],
@@ -331,7 +331,7 @@ describe("aggregate", () => {
       usageByModel: {
         data: [
           {
-            bucket_start_time: "2026-03-01T00:00:00Z",
+            starting_at: "2026-03-01T00:00:00Z",
             results: [
               { uncached_input_tokens: 10000, cache_read_input_tokens: 500, output_tokens: 5000, model: "claude-sonnet-4-20250514" },
             ],
@@ -342,7 +342,7 @@ describe("aggregate", () => {
       costReport: {
         data: [
           {
-            bucket_start_time: "2026-03-01T00:00:00Z",
+            starting_at: "2026-03-01T00:00:00Z",
             results: [{ amount: "500" }],
           },
         ],

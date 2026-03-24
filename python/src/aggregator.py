@@ -228,7 +228,7 @@ def daily_token_breakdown(buckets: list[dict]) -> list[dict]:
             tokens += (r.get("output_tokens") or 0)
             tokens += _result_cache_tokens(r)
         result.append({
-            "date": bucket["bucket_start_time"][:10],
+            "date": bucket["starting_at"][:10],
             "tokens": tokens,
         })
     return result
@@ -242,7 +242,7 @@ def daily_cost_breakdown(buckets: list[dict]) -> list[dict]:
         for r in bucket.get("results") or []:
             cents += float(r.get("amount") or "0")
         result.append({
-            "date": bucket["bucket_start_time"][:10],
+            "date": bucket["starting_at"][:10],
             "cost_usd": cents_to_usd(cents),
         })
     return result

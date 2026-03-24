@@ -1,56 +1,53 @@
-# claude-metrics
+# claude-metrics-lambda
 
-TypeScript Lambda that fetches your Anthropic account metrics via the Admin API and returns a single shaped response with everything you need: token capacity, cost tracking, usage breakdown, and account info.
+Lambda that fetches your Anthropic account metrics via the Admin API and returns a single shaped response: token capacity, cost tracking, usage breakdown, and account info.
 
-## Quick Start
+Available in **TypeScript** and **Python** — both produce identical JSON output.
 
-### 1. Install
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) >= 18 (for TypeScript Lambda)
+- [Python](https://www.python.org/) >= 3.11 (for Python Lambda)
+- [Docker](https://www.docker.com/)
+- [AWS CLI](https://aws.amazon.com/cli/)
+
+## Quick Start (TypeScript)
 
 ```bash
 npm install
-```
-
-### 2. Add your API key
-
-```bash
 cp .env.example .env
 # Edit .env and set ANTHROPIC_ADMIN_API_KEY
-```
+# Get one from: https://console.anthropic.com/settings/admin-keys
 
-Get an Admin API key from: https://console.anthropic.com/settings/admin-keys
-
-### 3. Run locally (no Docker needed)
-
-```bash
-npm run invoke
-```
-
-### 4. Run via Docker + LocalStack
-
-```bash
 docker compose up -d
 npm run deploy:local
-
-# Invoke the Lambda
-awslocal lambda invoke --function-name claude-metrics --region us-east-1 /dev/stdout
+aws --endpoint-url http://localhost:4566 lambda invoke --function-name claude-metrics --region us-east-1 /dev/stdout
 ```
+
+Or run directly without Docker: `npm run invoke`
+
+## Quick Start (Python)
+
+```bash
+cd python
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+
+# From project root
+docker compose up -d
+./python/scripts/deploy-local.sh
+aws --endpoint-url http://localhost:4566 lambda invoke --function-name claude-metrics-python --region us-east-1 /dev/stdout
+```
+
+Or run directly without Docker: `python scripts/invoke_local.py`
 
 ## What You Get
 
-A single JSON response organized around two questions:
+A single JSON response answering two questions:
 
-**Will I run out of tokens?**
-- Tokens used / remaining / limit
-- Daily burn rate
-- Projected tokens at period end
-- Days until exhaustion (null if you won't hit the limit)
+**Will I run out of tokens?** — tokens used/remaining/limit, daily burn rate, projected end-of-month usage, days until exhaustion
 
-**How much have I spent?**
-- Current spend in USD
-- Projected monthly spend
-- Daily burn rate in USD
-- Cost breakdown by model
-- Daily cost for sparkline/trend
+**How much have I spent?** — current spend, projected monthly, daily burn rate, cost by model, daily trend
 
 Plus: full usage breakdown (input/output/cache), Claude Code per-user stats, account info (org, workspaces, members, API keys), and billing period details.
 
@@ -97,12 +94,10 @@ cd python && source .venv/bin/activate && python -m pytest -v
 
 ## Project Structure
 
-This project includes two functionally identical Lambda implementations — TypeScript and Python — that produce the same JSON output.
-
 ```
 src/                          # TypeScript Lambda
 ├── index.ts              # Lambda handler
-├── anthropic-admin.ts    # Typed Admin API client (native fetch, zero deps)
+├── anthropic-admin.ts    # Admin API client (native fetch, zero deps)
 ├── aggregator.ts         # Data shaping + math
 └── types.ts              # All TypeScript interfaces
 
@@ -119,25 +114,6 @@ python/                       # Python Lambda
 │   └── deploy-local.sh
 ├── Dockerfile
 └── pyproject.toml
-```
-
-### Python Quick Start
-
-```bash
-cd python
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-python -m pytest -v
-python scripts/invoke_local.py
-```
-
-### Python LocalStack Deploy
-
-```bash
-docker compose up -d
-./python/scripts/deploy-local.sh
-awslocal lambda invoke --function-name claude-metrics-python --region us-east-1 /dev/stdout
 ```
 
 ## License

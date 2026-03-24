@@ -32,7 +32,7 @@ class TestSumTokens:
     def test_sums_all_token_types_across_buckets(self):
         buckets = [
             {
-                "bucket_start_time": "2026-03-01T00:00:00Z",
+                "starting_at": "2026-03-01T00:00:00Z",
                 "results": [
                     {
                         "uncached_input_tokens": 1000,
@@ -46,7 +46,7 @@ class TestSumTokens:
                 ],
             },
             {
-                "bucket_start_time": "2026-03-02T00:00:00Z",
+                "starting_at": "2026-03-02T00:00:00Z",
                 "results": [
                     {
                         "uncached_input_tokens": 2000,
@@ -65,7 +65,7 @@ class TestSumTokens:
     def test_handles_missing_cache_creation_fields(self):
         buckets = [
             {
-                "bucket_start_time": "2026-03-01T00:00:00Z",
+                "starting_at": "2026-03-01T00:00:00Z",
                 "results": [
                     {
                         "uncached_input_tokens": 100,
@@ -82,7 +82,7 @@ class TestSumTokensByType:
     def test_breaks_down_tokens_by_type(self):
         buckets = [
             {
-                "bucket_start_time": "2026-03-01T00:00:00Z",
+                "starting_at": "2026-03-01T00:00:00Z",
                 "results": [
                     {
                         "uncached_input_tokens": 1000,
@@ -113,11 +113,11 @@ class TestSumCostCents:
     def test_sums_cost_amounts_in_cents(self):
         buckets = [
             {
-                "bucket_start_time": "2026-03-01T00:00:00Z",
+                "starting_at": "2026-03-01T00:00:00Z",
                 "results": [{"amount": "150"}, {"amount": "250"}],
             },
             {
-                "bucket_start_time": "2026-03-02T00:00:00Z",
+                "starting_at": "2026-03-02T00:00:00Z",
                 "results": [{"amount": "1000"}],
             },
         ]
@@ -191,13 +191,13 @@ class TestDailyTokenBreakdown:
     def test_produces_date_token_pairs_from_buckets(self):
         buckets = [
             {
-                "bucket_start_time": "2026-03-01T00:00:00Z",
+                "starting_at": "2026-03-01T00:00:00Z",
                 "results": [
                     {"uncached_input_tokens": 100, "cache_read_input_tokens": 0, "output_tokens": 50},
                 ],
             },
             {
-                "bucket_start_time": "2026-03-02T00:00:00Z",
+                "starting_at": "2026-03-02T00:00:00Z",
                 "results": [
                     {"uncached_input_tokens": 200, "cache_read_input_tokens": 0, "output_tokens": 100},
                 ],
@@ -214,8 +214,8 @@ class TestDailyTokenBreakdown:
 class TestDailyCostBreakdown:
     def test_produces_date_cost_pairs_from_buckets(self):
         buckets = [
-            {"bucket_start_time": "2026-03-01T00:00:00Z", "results": [{"amount": "500"}]},
-            {"bucket_start_time": "2026-03-02T00:00:00Z", "results": [{"amount": "750"}]},
+            {"starting_at": "2026-03-01T00:00:00Z", "results": [{"amount": "500"}]},
+            {"starting_at": "2026-03-02T00:00:00Z", "results": [{"amount": "750"}]},
         ]
 
         result = daily_cost_breakdown(buckets)
@@ -234,7 +234,7 @@ class TestGroupUsageByModel:
     def test_groups_and_sums_tokens_by_model_sorted_descending(self):
         buckets = [
             {
-                "bucket_start_time": "2026-03-01T00:00:00Z",
+                "starting_at": "2026-03-01T00:00:00Z",
                 "results": [
                     {
                         "uncached_input_tokens": 1000,
@@ -325,7 +325,7 @@ class TestAggregate:
             "usage_report": {
                 "data": [
                     {
-                        "bucket_start_time": "2026-03-01T00:00:00Z",
+                        "starting_at": "2026-03-01T00:00:00Z",
                         "results": [
                             {"uncached_input_tokens": 10000, "cache_read_input_tokens": 500, "output_tokens": 5000},
                         ],
@@ -336,7 +336,7 @@ class TestAggregate:
             "usage_by_model": {
                 "data": [
                     {
-                        "bucket_start_time": "2026-03-01T00:00:00Z",
+                        "starting_at": "2026-03-01T00:00:00Z",
                         "results": [
                             {
                                 "uncached_input_tokens": 10000,
@@ -352,7 +352,7 @@ class TestAggregate:
             "cost_report": {
                 "data": [
                     {
-                        "bucket_start_time": "2026-03-01T00:00:00Z",
+                        "starting_at": "2026-03-01T00:00:00Z",
                         "results": [{"amount": "500"}],
                     },
                 ],

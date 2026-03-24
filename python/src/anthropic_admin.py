@@ -85,7 +85,7 @@ class AnthropicAdminClient:
             "limit": limit,
         }
         if group_by:
-            params["group_by"] = group_by
+            params["group_by[]"] = group_by
         if model:
             params["model"] = model
         if page:
@@ -127,7 +127,7 @@ class AnthropicAdminClient:
             "limit": limit,
         }
         if group_by:
-            params["group_by"] = group_by
+            params["group_by[]"] = group_by
         if page:
             params["page"] = page
         return self._get("/v1/organizations/cost_report", params)

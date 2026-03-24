@@ -229,7 +229,7 @@ export function dailyTokenBreakdown(
         tokens += cache.ephemeral_1h_input_tokens ?? 0;
       }
     }
-    return { date: bucket.bucket_start_time.slice(0, 10), tokens };
+    return { date: bucket.starting_at.slice(0, 10), tokens };
   });
 }
 
@@ -242,7 +242,7 @@ export function dailyCostBreakdown(
     for (const result of bucket.results ?? []) {
       cents += parseFloat(result.amount ?? "0");
     }
-    return { date: bucket.bucket_start_time.slice(0, 10), cost_usd: centsToUsd(cents) };
+    return { date: bucket.starting_at.slice(0, 10), cost_usd: centsToUsd(cents) };
   });
 }
 
