@@ -7,6 +7,7 @@
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.mjs --format=esm --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
     "invoke": "tsx scripts/invoke-local.ts",
+    "dashboard": "tsx scripts/dashboard.ts",
     "deploy:local": "./scripts/deploy-local.sh",
     "test": "vitest run",
     "test:watch": "vitest",
