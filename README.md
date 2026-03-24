@@ -1,5 +1,7 @@
 # claude-metrics-lambda
 
+> **TL;DR:** One Lambda call → your complete Anthropic account metrics (tokens, spend, projections, per-user breakdown) as a single JSON response. [Why?](#why-this-lambda)
+
 Lambda that fetches your Anthropic account metrics via the Admin API and returns a single shaped response: token capacity, cost tracking, usage breakdown, and account info.
 
 Available in **TypeScript** and **Python** — both produce identical JSON output.
@@ -114,6 +116,16 @@ pip install -e ".[dev]" && python scripts/invoke_local.py
 npm test
 cd python && source .venv/bin/activate && python -m pytest -v
 ```
+
+## Why This Lambda?
+
+The Anthropic Admin API spreads account metrics across multiple endpoints — usage reports, cost reports, Claude Code usage (one call per day), workspaces, members, and API keys. Getting a complete picture requires orchestrating 8+ API calls, parsing different response formats, and doing the math (burn rates, projections, exhaustion dates).
+
+This Lambda does all of that in a single invocation and returns one shaped JSON response. Deploy it on a schedule (CloudWatch Events, cron) and pipe the output to a dashboard, Slack alert, or monitoring system.
+
+## Why This Repository?
+
+This is a reference implementation for consuming the Anthropic Admin API. It's designed to be cloned, modified, and deployed — not installed as a package. Two implementations (TypeScript and Python) are provided so you can pick whichever fits your stack, or use both as a Rosetta Stone for porting the logic elsewhere.
 
 ## License
 
