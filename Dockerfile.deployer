@@ -1,0 +1,28 @@
+FROM node:18-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    zip \
+    curl \
+    unzip \
+    ca-certificates \
+    && ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "arm64" ]; then \
+         AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"; \
+       else \
+         AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"; \
+       fi \
+    && curl "$AWS_CLI_URL" -o /tmp/awscliv2.zip \
+    && unzip -q /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/aws /tmp/awscliv2.zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g esbuild
+
+WORKDIR /workspace
+
+COPY scripts/deploy-all.sh /usr/local/bin/deploy-all.sh
+RUN chmod +x /usr/local/bin/deploy-all.sh
+
+ENTRYPOINT ["/usr/local/bin/deploy-all.sh"]

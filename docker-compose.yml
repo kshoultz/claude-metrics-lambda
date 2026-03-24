@@ -5,25 +5,43 @@ services:
       - "4566:4566"
     environment:
       - SERVICES=lambda,iam,logs
-      - LAMBDA_EXECUTOR=docker
-      - DOCKER_HOST=unix:///var/run/docker.sock
       - DEBUG=0
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./localstack-data:/var/lib/localstack"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
-  deploy:
-    build: .
-    depends_on:
-      localstack:
-        condition: service_started
-    entrypoint: ["sh", "-c", "echo 'Lambda image built. Run ./scripts/deploy-local.sh to deploy.'"]
-
-  deploy-python:
+  deployer:
     build:
-      context: ./python
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.deployer
     depends_on:
       localstack:
-        condition: service_started
-    entrypoint: ["sh", "-c", "echo 'Python Lambda image built. Run ./python/scripts/deploy-local.sh to deploy.'"]
+        condition: service_healthy
+    env_file: .env
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - ./src:/workspace/src:ro
+      - ./package.json:/workspace/package.json:ro
+      - ./python/src:/workspace/python/src:ro
+
+  test-ts:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-ts
+    profiles: ["test"]
+
+  test-python:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-python
+    profiles: ["test"]

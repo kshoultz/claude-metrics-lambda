@@ -1,0 +1,11 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY python/pyproject.toml ./
+RUN pip install --no-cache-dir pytest
+
+COPY python/src/ ./src/
+COPY python/tests/ ./tests/
+
+CMD ["python", "-m", "pytest", "-v"]

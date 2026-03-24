@@ -4,42 +4,22 @@ Lambda that fetches your Anthropic account metrics via the Admin API and returns
 
 Available in **TypeScript** and **Python** — both produce identical JSON output.
 
-## Prerequisites
+## Quick Start
 
-- [Node.js](https://nodejs.org/) >= 18 (for TypeScript Lambda)
-- [Python](https://www.python.org/) >= 3.11 (for Python Lambda)
-- [Docker](https://www.docker.com/)
-- [AWS CLI](https://aws.amazon.com/cli/)
-
-## Quick Start (TypeScript)
+Only Docker required. No local Node.js, Python, or AWS CLI needed.
 
 ```bash
-npm install
-cp .env.example .env
-# Edit .env and set ANTHROPIC_ADMIN_API_KEY
-# Get one from: https://console.anthropic.com/settings/admin-keys
-
-docker compose up -d
-npm run deploy:local
-aws --endpoint-url http://localhost:4566 lambda invoke --function-name claude-metrics --region us-east-1 /dev/stdout
+cp .env.example .env          # add your ANTHROPIC_ADMIN_API_KEY
+docker compose up              # deploys and invokes both lambdas
 ```
 
-Or run directly without Docker: `npm run invoke`
+Get an Admin API key from: https://console.anthropic.com/settings/admin-keys
 
-## Quick Start (Python)
+## Run Tests
 
 ```bash
-cd python
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-
-# From project root
-docker compose up -d
-./python/scripts/deploy-local.sh
-aws --endpoint-url http://localhost:4566 lambda invoke --function-name claude-metrics-python --region us-east-1 /dev/stdout
+docker compose --profile test up test-ts test-python
 ```
-
-Or run directly without Docker: `python scripts/invoke_local.py`
 
 ## What You Get
 
@@ -82,38 +62,46 @@ Plus: full usage breakdown (input/output/cache), Claude Code per-user stats, acc
 | `CLAUDE_API_TOKEN_LIMIT` | No | `50000000` | Token limit for capacity calculations |
 | `CLAUDE_CODE_TOKEN_LIMIT` | No | `50000000` | Claude Code token limit |
 
-## Tests
-
-```bash
-# TypeScript
-npm test
-
-# Python
-cd python && source .venv/bin/activate && python -m pytest -v
-```
-
 ## Project Structure
+
+Two functionally identical Lambda implementations that produce the same JSON output.
 
 ```
 src/                          # TypeScript Lambda
-├── index.ts              # Lambda handler
-├── anthropic-admin.ts    # Admin API client (native fetch, zero deps)
-├── aggregator.ts         # Data shaping + math
-└── types.ts              # All TypeScript interfaces
+├── index.ts
+├── anthropic-admin.ts
+├── aggregator.ts
+└── types.ts
 
-python/                       # Python Lambda
-├── src/
-│   ├── handler.py        # Lambda handler
-│   ├── anthropic_admin.py # Admin API client (urllib.request, zero deps)
-│   ├── aggregator.py     # Data shaping + math
-│   └── types.py          # TypedDict definitions
-├── tests/
-│   └── test_aggregator.py
-├── scripts/
-│   ├── invoke_local.py
-│   └── deploy-local.sh
-├── Dockerfile
-└── pyproject.toml
+python/src/                   # Python Lambda
+├── handler.py
+├── anthropic_admin.py
+├── aggregator.py
+└── types.py
+```
+
+## Alternative: Run Without Docker
+
+Requires Node.js >= 18, Python >= 3.11, and AWS CLI on your host.
+
+```bash
+# TypeScript — run directly
+npm install
+npm run invoke
+
+# TypeScript — deploy to LocalStack
+npm run deploy:local
+
+# Python — run directly
+cd python && python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]" && python scripts/invoke_local.py
+
+# Python — deploy to LocalStack
+./python/scripts/deploy-local.sh
+
+# Unit tests
+npm test
+cd python && source .venv/bin/activate && python -m pytest -v
 ```
 
 ## License
