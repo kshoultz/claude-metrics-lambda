@@ -5,6 +5,7 @@ import {
   sumCostCents,
   centsToUsd,
   projectMonthlyCost,
+  getEffectiveDaysElapsed,
   getBillingPeriod,
   getDateRange,
   dailyTokenBreakdown,
@@ -142,9 +143,10 @@ describe("centsToUsd", () => {
 // ============================================================================
 
 describe("projectMonthlyCost", () => {
-  it("projects monthly cost via linear extrapolation", () => {
-    // $10 spent over 10 days in a 30-day month = $30 projected
-    expect(projectMonthlyCost(10, 10, 30)).toBe(30);
+  it("projects period cost via linear extrapolation", () => {
+    // $10 spent over 10 days, 20 days remaining in a 30-day period = $30 projected
+    // (current $10 + daily_rate $1/day × 20 remaining = $30)
+    expect(projectMonthlyCost(10, 10, 20)).toBe(30);
   });
 
   it("returns current cost if no days elapsed", () => {
@@ -152,9 +154,56 @@ describe("projectMonthlyCost", () => {
   });
 
   it("handles fractional days", () => {
-    // $15 over 15.5 days in 31-day month ≈ $30
-    const result = projectMonthlyCost(15, 15.5, 31);
+    // $15 over 15.5 days, 15.5 days remaining ≈ $30
+    const result = projectMonthlyCost(15, 15.5, 15.5);
     expect(result).toBeCloseTo(30, 0);
+  });
+
+  it("mid-month starter: uses effective days to give accurate projection", () => {
+    // User started on day 22 of a 31-day month (today is day 25 = 3 effective days).
+    // They spent $3 in 3 active days ($1/day). 6 days remain.
+    // Projected = $3 + $1/day × 6 = $9, NOT the misleading $3/24*31 = $3.88
+    expect(projectMonthlyCost(3, 3, 6)).toBe(9);
+  });
+});
+
+// ============================================================================
+// Effective Days Elapsed
+// ============================================================================
+
+describe("getEffectiveDaysElapsed", () => {
+  it("returns days from first non-zero bucket to now", () => {
+    const now = new Date("2026-03-25T12:00:00Z");
+    const buckets: RawCostBucket[] = [
+      { starting_at: "2026-03-01T00:00:00Z", results: [{ amount: "0" }] },
+      { starting_at: "2026-03-22T00:00:00Z", results: [{ amount: "100" }] },
+      { starting_at: "2026-03-23T00:00:00Z", results: [{ amount: "100" }] },
+    ];
+    const result = getEffectiveDaysElapsed(buckets, now);
+    // March 22 to March 25 noon = 3.5 days
+    expect(result).toBeCloseTo(3.5, 0);
+  });
+
+  it("returns null when all buckets are zero-cost", () => {
+    const now = new Date("2026-03-25T12:00:00Z");
+    const buckets: RawCostBucket[] = [
+      { starting_at: "2026-03-01T00:00:00Z", results: [{ amount: "0" }] },
+    ];
+    expect(getEffectiveDaysElapsed(buckets, now)).toBeNull();
+  });
+
+  it("returns null for empty buckets", () => {
+    expect(getEffectiveDaysElapsed([], new Date())).toBeNull();
+  });
+
+  it("returns at least 1 day to avoid division by zero", () => {
+    const now = new Date("2026-03-25T00:00:00Z");
+    const buckets: RawCostBucket[] = [
+      // first cost bucket starts today (0 elapsed)
+      { starting_at: "2026-03-25T00:00:00Z", results: [{ amount: "100" }] },
+    ];
+    const result = getEffectiveDaysElapsed(buckets, now);
+    expect(result).toBeGreaterThanOrEqual(1);
   });
 });
 

@@ -143,19 +143,58 @@ def cents_to_usd(cents: float) -> float:
 
 
 # ============================================================================
-# Cost Projection (ported from TS projectMonthlyCost)
+# Cost Projection (ported from TS projectMonthlyCost / getEffectiveDaysElapsed)
 # ============================================================================
 
 def project_monthly_cost(
     current_cost_usd: float,
     days_elapsed: float,
-    days_total: int,
+    days_remaining: float,
 ) -> float:
-    """Project monthly cost based on linear extrapolation of spend-to-date."""
+    """Project end-of-period cost based on actual spend so far.
+
+    Uses days_remaining so the result represents what you will actually spend
+    this billing period (current + daily_rate × days_remaining), rather than
+    the misleading "what you'd spend in a full month at this rate".
+
+    When days_elapsed comes from get_effective_days_elapsed (i.e. days since
+    first non-zero cost bucket), mid-month starters get an accurate rate
+    instead of having their burn rate diluted by zero-cost days before they
+    started.
+    """
     if days_elapsed <= 0:
         return current_cost_usd
     daily_rate = current_cost_usd / days_elapsed
-    return round2(daily_rate * days_total)
+    return round2(current_cost_usd + daily_rate * days_remaining)
+
+
+def get_effective_days_elapsed(
+    cost_buckets: list[dict],
+    now: datetime,
+) -> Optional[float]:
+    """Return days from the first non-zero cost bucket to now.
+
+    Returns None when there are no non-zero buckets (no spend yet).
+
+    Using this value instead of calendar days_elapsed avoids diluting the burn
+    rate with zero-cost days that precede the user's first API usage.
+    """
+    first_nonzero: Optional[dict] = None
+    for bucket in cost_buckets:
+        for r in bucket.get("results") or []:
+            if float(r.get("amount") or "0") > 0:
+                first_nonzero = bucket
+                break
+        if first_nonzero:
+            break
+
+    if not first_nonzero:
+        return None
+
+    first_date = datetime.fromisoformat(
+        first_nonzero["starting_at"].replace("Z", "+00:00")
+    )
+    return max((now - first_date).total_seconds() / 86400, 1.0)
 
 
 # ============================================================================
@@ -353,14 +392,20 @@ def aggregate(input_data: dict) -> dict:
     cost_data = (input_data["cost_report"].get("data") or [])
     cost_cents = sum_cost_cents(cost_data)
     current_spend_usd = cents_to_usd(cost_cents)
+    # Use effective days (from first cost bucket to now) so that users who
+    # start mid-month don't have their burn rate diluted by zero-cost early days.
+    effective_days_elapsed = (
+        get_effective_days_elapsed(cost_data, now)
+        or billing_period["days_elapsed"]
+    )
     projected_spend_usd = project_monthly_cost(
         current_spend_usd,
-        billing_period["days_elapsed"],
-        billing_period["days_total"],
+        effective_days_elapsed,
+        billing_period["days_remaining"],
     )
     daily_burn_rate_usd = (
-        round2(current_spend_usd / billing_period["days_elapsed"])
-        if billing_period["days_elapsed"] > 0
+        round2(current_spend_usd / effective_days_elapsed)
+        if effective_days_elapsed > 0
         else 0.0
     )
 

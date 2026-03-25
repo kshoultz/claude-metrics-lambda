@@ -63,6 +63,7 @@ export const handler = async (
       client.getCostReport({
         starting_at: billingPeriod.start,
         ending_at: now.toISOString(),
+        group_by: "description",
       }),
       client.getClaudeCodeUsageRange(dates),
       client.listWorkspaces(),
