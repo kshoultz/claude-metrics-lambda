@@ -146,15 +146,44 @@ export function centsToUsd(cents: number): number {
 // Cost Projection (ported from Python _project_monthly_cost)
 // ============================================================================
 
-/** Project monthly cost based on linear extrapolation of spend-to-date. */
+/**
+ * Project end-of-period cost based on actual spend so far.
+ *
+ * Uses daysRemaining so the result represents what you will actually spend
+ * this billing period (current + daily_rate × days_remaining), rather than
+ * the misleading "what you'd spend in a full month at this rate".
+ *
+ * When daysElapsed comes from getEffectiveDaysElapsed (i.e. days since first
+ * non-zero cost bucket), mid-month starters get an accurate rate instead of
+ * having their burn rate diluted by zero-cost days before they started.
+ */
 export function projectMonthlyCost(
   currentCostUsd: number,
   daysElapsed: number,
-  daysTotal: number
+  daysRemaining: number
 ): number {
   if (daysElapsed <= 0) return currentCostUsd;
   const dailyRate = currentCostUsd / daysElapsed;
-  return round2(dailyRate * daysTotal);
+  return round2(currentCostUsd + dailyRate * daysRemaining);
+}
+
+/**
+ * Return the number of days from the first cost bucket with any spend to now.
+ * Falls back to null when there are no non-zero buckets (no spend yet).
+ *
+ * Using this value instead of calendar days_elapsed avoids diluting the burn
+ * rate with zero-cost days that precede the user's first API usage.
+ */
+export function getEffectiveDaysElapsed(
+  costBuckets: RawCostBucket[],
+  now: Date
+): number | null {
+  const firstNonZero = costBuckets.find((b) =>
+    (b.results ?? []).some((r) => parseFloat(r.amount ?? "0") > 0)
+  );
+  if (!firstNonZero) return null;
+  const firstDate = new Date(firstNonZero.starting_at);
+  return Math.max((now.getTime() - firstDate.getTime()) / 86_400_000, 1);
 }
 
 // ============================================================================
@@ -386,14 +415,19 @@ export function aggregate(input: AggregatorInput): ClaudeMetricsResponse {
   // ── Cost ───────────────────────────────────────────────────
   const costCents = sumCostCents(input.costReport.data ?? []);
   const currentSpendUsd = centsToUsd(costCents);
+  // Use effective days (from first cost bucket to now) so that users who
+  // start mid-month don't have their burn rate diluted by zero-cost early days.
+  const effectiveDaysElapsed =
+    getEffectiveDaysElapsed(input.costReport.data ?? [], now) ??
+    billingPeriod.days_elapsed;
   const projectedSpendUsd = projectMonthlyCost(
     currentSpendUsd,
-    billingPeriod.days_elapsed,
-    billingPeriod.days_total
+    effectiveDaysElapsed,
+    billingPeriod.days_remaining
   );
   const dailyBurnRateUsd =
-    billingPeriod.days_elapsed > 0
-      ? round2(currentSpendUsd / billingPeriod.days_elapsed)
+    effectiveDaysElapsed > 0
+      ? round2(currentSpendUsd / effectiveDaysElapsed)
       : 0;
 
   // ── Claude Code ────────────────────────────────────────────

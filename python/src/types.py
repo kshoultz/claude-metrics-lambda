@@ -168,7 +168,7 @@ class RawUsageResult(TypedDict, total=False):
 
 
 class RawUsageBucket(TypedDict):
-    bucket_start_time: str
+    starting_at: str
     results: list[RawUsageResult]
 
 
@@ -186,7 +186,7 @@ class RawCostResult(TypedDict, total=False):
 
 
 class RawCostBucket(TypedDict):
-    bucket_start_time: str
+    starting_at: str
     results: list[RawCostResult]
 
 

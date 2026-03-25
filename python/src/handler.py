@@ -57,6 +57,7 @@ def handler(event=None, context=None):
                 client.get_cost_report,
                 starting_at=billing_period["start"],
                 ending_at=now_iso,
+                group_by="description",
             )
             f_code = executor.submit(client.get_claude_code_usage_range, dates)
             f_ws = executor.submit(client.list_workspaces)

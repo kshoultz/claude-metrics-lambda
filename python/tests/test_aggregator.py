@@ -15,6 +15,7 @@ from src.aggregator import (
     daily_token_breakdown,
     get_billing_period,
     get_date_range,
+    get_effective_days_elapsed,
     group_usage_by_model,
     project_monthly_cost,
     sum_cost_cents,
@@ -143,16 +144,62 @@ class TestCentsToUsd:
 
 class TestProjectMonthlyCost:
     def test_projects_monthly_cost_via_linear_extrapolation(self):
-        # $10 spent over 10 days in a 30-day month = $30 projected
-        assert project_monthly_cost(10, 10, 30) == 30
+        # $10 spent over 10 days, 20 days remaining in a 30-day period = $30 projected
+        # (current $10 + daily_rate $1/day × 20 remaining = $30)
+        assert project_monthly_cost(10, 10, 20) == 30
 
     def test_returns_current_cost_if_no_days_elapsed(self):
         assert project_monthly_cost(5, 0, 30) == 5
 
     def test_handles_fractional_days(self):
-        # $15 over 15.5 days in 31-day month ~ $30
-        result = project_monthly_cost(15, 15.5, 31)
+        # $15 over 15.5 days, 15.5 days remaining ~ $30
+        result = project_monthly_cost(15, 15.5, 15.5)
         assert abs(result - 30) < 1
+
+    def test_mid_month_starter_gives_accurate_projection(self):
+        # User started on day 22 of a 31-day month (today is day 25 = 3 effective days).
+        # They spent $3 in 3 active days ($1/day). 6 days remain.
+        # Projected = $3 + $1/day × 6 = $9, NOT the misleading $3/24*31 = $3.88
+        assert project_monthly_cost(3, 3, 6) == 9
+
+
+# ============================================================================
+# Effective Days Elapsed
+# ============================================================================
+
+
+class TestGetEffectiveDaysElapsed:
+    def test_returns_days_from_first_nonzero_bucket_to_now(self):
+        now = datetime(2026, 3, 25, 12, 0, 0, tzinfo=timezone.utc)
+        buckets = [
+            {"starting_at": "2026-03-01T00:00:00Z", "results": [{"amount": "0"}]},
+            {"starting_at": "2026-03-22T00:00:00Z", "results": [{"amount": "100"}]},
+            {"starting_at": "2026-03-23T00:00:00Z", "results": [{"amount": "100"}]},
+        ]
+        result = get_effective_days_elapsed(buckets, now)
+        # March 22 to March 25 noon = 3.5 days
+        assert result is not None
+        assert abs(result - 3.5) < 0.1
+
+    def test_returns_none_when_all_buckets_are_zero_cost(self):
+        now = datetime(2026, 3, 25, 12, 0, 0, tzinfo=timezone.utc)
+        buckets = [
+            {"starting_at": "2026-03-01T00:00:00Z", "results": [{"amount": "0"}]},
+        ]
+        assert get_effective_days_elapsed(buckets, now) is None
+
+    def test_returns_none_for_empty_buckets(self):
+        assert get_effective_days_elapsed([], datetime.now(timezone.utc)) is None
+
+    def test_returns_at_least_1_day_to_avoid_division_by_zero(self):
+        now = datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc)
+        buckets = [
+            # first cost bucket starts today (0 elapsed)
+            {"starting_at": "2026-03-25T00:00:00Z", "results": [{"amount": "100"}]},
+        ]
+        result = get_effective_days_elapsed(buckets, now)
+        assert result is not None
+        assert result >= 1
 
 
 # ============================================================================
